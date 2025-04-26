@@ -17,8 +17,33 @@ app.use(cors());
 // API：取得資料庫資料
 app.get('/data', async (req, res) => {
     const table = req.query.table;
-    const allowedTables = ['albergue', 'cities', 'diary', 'favorites', 'img', 'orders', 'quotes', 'routes', 'sight', 'stamps', 'users'];
-  
+
+    if (!table) {
+        return res.status(400).json({ error: "缺少 table 參數" });
+      }
+    
+      try {
+        // 1. 先查出目前資料庫裡有哪些資料表
+        const tablesResult = await pool.query(`
+          SELECT table_name
+          FROM information_schema.tables
+          WHERE table_schema = 'public'
+        `);
+        const allowedTables = tablesResult.rows.map(row => row.table_name);
+    
+        // 2. 檢查請求的 table 是否存在
+        if (!allowedTables.includes(table)) {
+          return res.status(400).json({ error: "無效的 table 名稱" });
+        }
+    
+        // 3. 正常撈取資料
+        const result = await pool.query(`SELECT * FROM "${table}"`);
+        res.json(result.rows);
+      } catch (err) {
+        console.error("❌ 錯誤內容：", err);
+        res.status(500).json({ error: "伺服器錯誤" });
+      }
+
     if (!table || !allowedTables.includes(table)) {
       return res.status(400).json({ error: "無效或缺少 table 參數" });
     }
