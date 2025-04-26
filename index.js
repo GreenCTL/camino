@@ -14,6 +14,7 @@ const pool = new Pool({
 // 中介
 app.use(cors());
 
+
 // API：取得資料庫資料
 app.get('/data', async (req, res) => {
     const table = req.query.table;
@@ -33,7 +34,7 @@ app.get('/data', async (req, res) => {
     
         // 2. 檢查請求的 table 是否存在
         if (!allowedTables.includes(table)) {
-          return res.status(400).json({ error: "無效的 table 名稱" });
+          return res.status(400).json({ error: "資料表不存在" });
         }
     
         // 3. 正常撈取資料
@@ -56,6 +57,36 @@ app.get('/data', async (req, res) => {
       res.status(500).json({ error: "伺服器錯誤" });
     }
   });
+
+//首頁
+app.get('/', (req, res) => {
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="zh-Hant">
+      <head>
+        <meta charset="UTF-8">
+        <title>查詢資料表</title>
+      </head>
+      <body>
+        <h1>查詢資料表資料</h1>
+        <input type="text" id="tableInput" placeholder="請輸入資料表名稱，例如 diary">
+        <button onclick="go()">送出</button>
+  
+        <script>
+          function go() {
+            const table = document.getElementById('tableInput').value.trim();
+            if (table) {
+              window.location.href = '/data?table=' + encodeURIComponent(table);
+            } else {
+              alert('請輸入資料表名稱！');
+            }
+          }
+        </script>
+      </body>
+      </html>
+    `);
+  });
+  
 
 // 啟動伺服器
 app.listen(PORT, () => {
