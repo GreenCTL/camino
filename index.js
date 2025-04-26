@@ -4,7 +4,7 @@ const { Pool } = require('pg');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
