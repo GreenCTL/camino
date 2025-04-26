@@ -16,14 +16,21 @@ app.use(cors());
 
 // API：取得資料庫資料
 app.get('/data', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM diary'); // 直接撈 diary
-    res.json(result.rows);
-  } catch (err) {
-    console.error("❌ 錯誤內容：", err);  // 原本是 console.error("❌ 錯誤：", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
-});
+    const table = req.query.table;
+    const allowedTables = ['albergue', 'cities', 'diary', 'favorites', 'img', 'orders', 'quotes', 'routes', 'sight', 'stamps', 'users'];
+  
+    if (!table || !allowedTables.includes(table)) {
+      return res.status(400).json({ error: "無效或缺少 table 參數" });
+    }
+  
+    try {
+      const result = await pool.query(`SELECT * FROM "${table}"`);
+      res.json(result.rows);
+    } catch (err) {
+      console.error("❌ 錯誤內容：", err);
+      res.status(500).json({ error: "伺服器錯誤" });
+    }
+  });
 
 // 啟動伺服器
 app.listen(PORT, () => {
