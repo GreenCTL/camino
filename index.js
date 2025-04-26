@@ -20,8 +20,8 @@ app.get('/data', async (req, res) => {
     const result = await pool.query('SELECT * FROM diary'); // 直接撈 diary
     res.json(result.rows);
   } catch (err) {
-    console.error('❌ 錯誤：', err);
-    res.status(500).json({ error: '伺服器錯誤' });
+    console.error("❌ 錯誤內容：", err);  // 原本是 console.error("❌ 錯誤：", err);
+    res.status(500).json({ error: "伺服器錯誤" });
   }
 });
 
