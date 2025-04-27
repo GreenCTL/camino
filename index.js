@@ -162,9 +162,9 @@ app.get('/', (req, res) => {
 
 //  取得資料 API（也要判斷登入）
 app.get('/data', async (req, res) => {
-    if (req.cookies.auth !== 'true') {
-        return res.status(401).json({ error: '未登入' });
-    }
+    if (req.cookies.auth !== 'true') {  // 或 if (!isLoggedIn) 看你用哪種登入系統
+        return res.status(401).json({ error: '需要登入才能查詢 users 資料表' });
+      }
 
     const { table } = req.query;
     if (!table) {
