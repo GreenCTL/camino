@@ -100,25 +100,50 @@ app.get('/', (req, res) => {
       <button onclick="logout()">登出</button>
 
       <pre id="result"></pre>
+<script>
+  async function go() {
+    const table = document.getElementById('tableInput').value.trim();
+    if (!table) {
+      alert('請輸入資料表名稱！');
+      return;
+    }
+    const url = '/data?table=' + encodeURIComponent(table);
+    const response = await fetch(url);
+    const data = await response.json();
 
-      <script>
-        async function go() {
-          const table = document.getElementById('tableInput').value.trim();
-          if (!table) {
-            alert('請輸入資料表名稱！');
-            return;
-          }
-          const url = '/data?table=' + encodeURIComponent(table);
-          const response = await fetch(url);
-          const data = await response.json();
-          document.getElementById('result').textContent = JSON.stringify(data, null, 2);
-        }
-          async function logout() {
-            await fetch('/logout');
-            alert('已登出');
-            window.location.href = '/login'; // 登出後跳回登入頁
-        }
-      </script>
+    if (Array.isArray(data) && data.length > 0) {
+      let html = '<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;">';
+      html += '<thead><tr>';
+
+      Object.keys(data[0]).forEach(col => {
+        html += `<th>${col}</th>`;
+      });
+      html += '</tr></thead><tbody>';
+
+      data.forEach(row => {
+        html += '<tr>';
+        Object.values(row).forEach(val => {
+          html += `<td>${val}</td>`;
+        });
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+
+      document.getElementById('result').innerHTML = html;
+    } else {
+      document.getElementById('result').innerHTML = '查無資料';
+    }
+  }
+
+  async function logout() {
+    await fetch('/logout');
+    alert('已登出');
+    window.location.href = '/login';
+  }
+</script>
+
+
     </body>
     </html>
   `);
