@@ -12,12 +12,20 @@ const PORT = process.env.PORT;
 const USERNAME = 'SteplyGo';
 const PASSWORD_HASH = '$2b$10$XEByRDiRGQCW3iA5/bb/5uIfirM3F4JEvQ7l20xwrLmT1M65OkotO';
 
-//  簡單記錄登入狀態（只用在這台伺服器，不做真正 session）
-let isLoggedIn = false;
+//  簡單記錄登入狀態（只用在這台伺服器，不做真正 session）(已經用cookie代替)
+// let isLoggedIn = false;
 
-app.use(express.json());
-app.use(cors());
+app.use(express.json());//express
 app.use(cookieParser()) //cookie
+
+//允許本機及外部的來源(react的app.js，localhost3002能夠抓取資料)
+const corsOptions = {
+    origin: ['http://localhost:3002', 'https://test-camino.onrender.com'], 
+    credentials: true //cookie為true時抓取資料
+  };
+
+app.use(cors(corsOptions));//
+
 
 //資料庫連線
 const pool = new Pool({
