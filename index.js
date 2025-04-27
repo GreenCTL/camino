@@ -3,26 +3,29 @@ const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser'); //加入cookie
 
 const app = express();
 const PORT = process.env.PORT;
 
-// ⭐ 帳密設定
+//  帳密設定
 const USERNAME = 'SteplyGo';
 const PASSWORD_HASH = '$2b$10$XEByRDiRGQCW3iA5/bb/5uIfirM3F4JEvQ7l20xwrLmT1M65OkotO';
 
-// ⭐ 簡單記錄登入狀態（只用在這台伺服器，不做真正 session）
+//  簡單記錄登入狀態（只用在這台伺服器，不做真正 session）
 let isLoggedIn = false;
 
 app.use(express.json());
 app.use(cors());
+app.use(cookieParser()) //cookie
 
+//資料庫連線
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false },
 });
 
-// ⭐ /login 頁面
+//login 頁面
 app.get('/login', (req, res) => {
     res.send(`
     <!DOCTYPE html>
@@ -60,29 +63,29 @@ app.get('/login', (req, res) => {
   `);
 });
 
-// ⭐ 登入 API (處理帳密比對)
+//  登入 API 採用cookie
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     if (username === USERNAME) {
         const match = await bcrypt.compare(password, PASSWORD_HASH);
         if (match) {
-            isLoggedIn = true;  // ✅ 登入成功，標記
+            res.cookie('auth', 'true', { maxAge: 5 * 60 * 1000, httpOnly: true }); //用cookie存5分鐘
             return res.json({ success: true });
         }
     }
     res.status(401).json({ success: false, message: '帳號或密碼錯誤' });
 });
 
-// ⭐ 登出 API
+//  登出 API (清除cookie)
 app.get('/logout', (req, res) => {
-    isLoggedIn = false;  // ❗️ 登出時把登入狀態改為 false
+    res.clearCookie('auth'); //清除cookie
     res.redirect('/login'); // 登出後直接跳轉回登入頁
 });
 
 
-// ⭐ 首頁（需要已登入）
+//  首頁（需要已登入）
 app.get('/', (req, res) => {
-    if (!isLoggedIn) {
+    if (req.cookies.auth !== 'true') {
         return res.redirect('/login');
     }
 
@@ -149,9 +152,9 @@ app.get('/', (req, res) => {
   `);
 });
 
-// ⭐ 取得資料 API（也要判斷登入）
+//  取得資料 API（也要判斷登入）
 app.get('/data', async (req, res) => {
-    if (!isLoggedIn) {
+    if (req.cookies.auth !== 'true') {
         return res.status(401).json({ error: '未登入' });
     }
 
@@ -182,5 +185,5 @@ app.get('/data', async (req, res) => {
 
 // 啟動
 app.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT}`);
+    console.log(` Server running on 連接埠(port): ${PORT}`);
 });
