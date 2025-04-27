@@ -116,14 +116,14 @@ app.get('/', (req, res) => {
       html += '<thead><tr>';
 
       Object.keys(data[0]).forEach(col => {
-        html += `<th>${col}</th>`;
+        html += '<th>'+col+'</th>';
       });
       html += '</tr></thead><tbody>';
 
       data.forEach(row => {
         html += '<tr>';
         Object.values(row).forEach(val => {
-          html += `<td>${val}</td>`;
+          html += '<td>'+val+'</td>';
         });
         html += '</tr>';
       });
