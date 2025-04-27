@@ -20,9 +20,9 @@ app.use(cookieParser()) //cookie
 
 //允許本機及外部的來源(react的app.js，localhost3002能夠抓取資料)
 const corsOptions = {
-    origin: ['http://localhost:3002', 'https://test-camino.onrender.com'], 
+    origin: ['http://localhost:3002', 'https://test-camino.onrender.com'],
     credentials: true //cookie為true時抓取資料
-  };
+};
 
 app.use(cors(corsOptions));//
 
@@ -162,11 +162,8 @@ app.get('/', (req, res) => {
 
 //  取得資料 API（也要判斷登入）
 app.get('/data', async (req, res) => {
-    if (req.cookies.auth !== 'true') {  // 或 if (!isLoggedIn) 看你用哪種登入系統
-        return res.status(401).json({ error: '需要登入才能查詢 users 資料表' });
-      }
-
     const { table } = req.query;
+
     if (!table) {
         return res.status(400).json({ error: "缺少 table 參數" });
     }
@@ -183,10 +180,17 @@ app.get('/data', async (req, res) => {
             return res.status(400).json({ error: "資料表不存在" });
         }
 
+        //  只有查 users 時檢查 cookie
+        if (table === 'users') {
+            if (req.cookies.auth !== 'true') {
+                return res.status(401).json({ error: "需要登入才能查詢 users 資料表" });
+            }
+        }
+        //查詢資料
         const result = await pool.query(`SELECT * FROM "${table}"`);
         res.json(result.rows);
     } catch (err) {
-        console.error("❌ 錯誤內容：", err);
+        console.error(" 錯誤內容：", err);
         res.status(500).json({ error: "伺服器錯誤" });
     }
 });
