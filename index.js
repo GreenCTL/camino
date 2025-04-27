@@ -93,10 +93,6 @@ app.get('/logout', (req, res) => {
 
 //  首頁（需要已登入）
 app.get('/', (req, res) => {
-    if (req.cookies.auth !== 'true') {
-        return res.redirect('/login');
-    }
-
     res.send(`
     <!DOCTYPE html>
     <html lang="zh-tw">
@@ -120,6 +116,14 @@ app.get('/', (req, res) => {
     }
     const url = '/data?table=' + encodeURIComponent(table);
     const response = await fetch(url);
+
+    if (response.status === 401) {
+      //  如果是查 users 又沒登入，跳出登入提示
+      alert('需要登入才能查詢 users 資料表，請先登入！');
+      window.location.href = '/login'; // 跳轉到登入畫面
+      return;
+    }
+
     const data = await response.json();
 
     if (Array.isArray(data) && data.length > 0) {
