@@ -18,15 +18,15 @@ app.use(express.json());
 app.use(cors());
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
 });
 
 // ⭐ /login 頁面
 app.get('/login', (req, res) => {
-  res.send(`
+    res.send(`
     <!DOCTYPE html>
-    <html lang="zh-Hant">
+    <html lang="zh-tw">
     <head>
       <meta charset="UTF-8">
       <title>登入</title>
@@ -62,34 +62,42 @@ app.get('/login', (req, res) => {
 
 // ⭐ 登入 API (處理帳密比對)
 app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-  if (username === USERNAME) {
-    const match = await bcrypt.compare(password, PASSWORD_HASH);
-    if (match) {
-      isLoggedIn = true;  // ✅ 登入成功，標記
-      return res.json({ success: true });
+    const { username, password } = req.body;
+    if (username === USERNAME) {
+        const match = await bcrypt.compare(password, PASSWORD_HASH);
+        if (match) {
+            isLoggedIn = true;  // ✅ 登入成功，標記
+            return res.json({ success: true });
+        }
     }
-  }
-  res.status(401).json({ success: false, message: '帳號或密碼錯誤' });
+    res.status(401).json({ success: false, message: '帳號或密碼錯誤' });
 });
+
+// ⭐ 登出 API
+app.get('/logout', (req, res) => {
+    isLoggedIn = false;  // ❗️ 登出時把登入狀態改為 false
+    res.redirect('/login'); // 登出後直接跳轉回登入頁
+});
+
 
 // ⭐ 首頁（需要已登入）
 app.get('/', (req, res) => {
-  if (!isLoggedIn) {
-    return res.redirect('/login');
-  }
+    if (!isLoggedIn) {
+        return res.redirect('/login');
+    }
 
-  res.send(`
+    res.send(`
     <!DOCTYPE html>
-    <html lang="zh-Hant">
+    <html lang="zh-tw">
     <head>
       <meta charset="UTF-8">
-      <title>查詢資料表（需要登入）</title>
+      <title>查詢資料表</title>
     </head>
     <body>
       <h1>查詢資料表資料</h1>
       <input type="text" id="tableInput" placeholder="請輸入資料表名稱，例如 diary"><br><br>
       <button onclick="go()">送出查詢</button>
+      <button onclick="logout()">登出</button>
 
       <pre id="result"></pre>
 
@@ -105,6 +113,11 @@ app.get('/', (req, res) => {
           const data = await response.json();
           document.getElementById('result').textContent = JSON.stringify(data, null, 2);
         }
+          async function logout() {
+            await fetch('/logout');
+            alert('已登出');
+            window.location.href = '/login'; // 登出後跳回登入頁
+        }
       </script>
     </body>
     </html>
@@ -113,36 +126,36 @@ app.get('/', (req, res) => {
 
 // ⭐ 取得資料 API（也要判斷登入）
 app.get('/data', async (req, res) => {
-  if (!isLoggedIn) {
-    return res.status(401).json({ error: '未登入' });
-  }
+    if (!isLoggedIn) {
+        return res.status(401).json({ error: '未登入' });
+    }
 
-  const { table } = req.query;
-  if (!table) {
-    return res.status(400).json({ error: "缺少 table 參數" });
-  }
+    const { table } = req.query;
+    if (!table) {
+        return res.status(400).json({ error: "缺少 table 參數" });
+    }
 
-  try {
-    const tablesResult = await pool.query(`
+    try {
+        const tablesResult = await pool.query(`
       SELECT table_name
       FROM information_schema.tables
       WHERE table_schema = 'public'
     `);
-    const allowedTables = tablesResult.rows.map(row => row.table_name);
+        const allowedTables = tablesResult.rows.map(row => row.table_name);
 
-    if (!allowedTables.includes(table)) {
-      return res.status(400).json({ error: "資料表不存在" });
+        if (!allowedTables.includes(table)) {
+            return res.status(400).json({ error: "資料表不存在" });
+        }
+
+        const result = await pool.query(`SELECT * FROM "${table}"`);
+        res.json(result.rows);
+    } catch (err) {
+        console.error("❌ 錯誤內容：", err);
+        res.status(500).json({ error: "伺服器錯誤" });
     }
-
-    const result = await pool.query(`SELECT * FROM "${table}"`);
-    res.json(result.rows);
-  } catch (err) {
-    console.error("❌ 錯誤內容：", err);
-    res.status(500).json({ error: "伺服器錯誤" });
-  }
 });
 
 // 啟動
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+    console.log(`✅ Server running on port ${PORT}`);
 });
