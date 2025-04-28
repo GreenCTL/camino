@@ -77,7 +77,12 @@ app.post('/login', async (req, res) => {
     if (username === USERNAME) {
         const match = await bcrypt.compare(password, PASSWORD_HASH);
         if (match) {
-            res.cookie('auth', 'true', { maxAge: 5 * 60 * 1000, httpOnly: true }); //用cookie存5分鐘
+            res.cookie('auth', 'true', { 
+              maxAge: 5 * 60 * 1000,
+              httpOnly: true,  //保護cookie不被前端拿走cookie的登入狀態
+              secure:process.env.NODE_ENV === 'production', // 當為http時不啟動sercure，為https時啟動
+              sameSite:process.env.NODE_ENV === 'production' //跨網域(http vs https)時使用
+             }); //用cookie存5分鐘
             return res.json({ success: true });
         }
     }
