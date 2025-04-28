@@ -78,11 +78,13 @@ app.post('/login', async (req, res) => {
         const match = await bcrypt.compare(password, PASSWORD_HASH);
         if (match) {
             res.cookie('auth', 'true', { 
-              maxAge: 5 * 60 * 1000,
+              maxAge: 5 * 60 * 1000, //cookie的存取時間為存5分鐘(分鐘*秒*毫秒)
               httpOnly: true,  //保護cookie不被前端拿走cookie的登入狀態
+              //當process.env.NODE_ENV = production(上線)時，secure為true
+              //如果當process.env.NODE_ENV = develoment(測試階段)，則secure為false(較寬鬆)
               secure:process.env.NODE_ENV === 'production', // 當為http時不啟動sercure，為https時啟動
               sameSite:process.env.NODE_ENV === 'production' //跨網域(http vs https)時使用
-             }); //用cookie存5分鐘
+             }); 
             return res.json({ success: true });
         }
     }
