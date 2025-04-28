@@ -20,7 +20,7 @@ app.use(cookieParser()) //cookie
 
 //允許本機及外部的來源(react的app.js，localhost3002能夠抓取資料)
 const corsOptions = {
-    origin: ['http://localhost:3002', 'https://test-camino.onrender.com'],
+    origin: true, //測試用，任何人都能夠fetch資料庫的資料，如果要上線，origin要設置能夠存取的port和網址:['http://localhost:3002', 'https://test-camino.onrender.com']
     credentials: true //cookie為true時抓取資料
 };
 
