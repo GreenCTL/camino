@@ -20,7 +20,7 @@ app.use(cookieParser()) //cookie
 
 //允許本機及外部的來源(react的app.js，localhost3002能夠抓取資料)
 const corsOptions = {
-    origin: true, //測試用，任何人都能夠fetch資料庫的資料，如果要上線，origin要設置能夠存取的port和網址:['http://localhost:3002', 'https://test-camino.onrender.com']
+    origin: true, //測試用，任何人都能夠fetch資料庫的資料，如果要上線，origin要設置能夠存取的port和網址，ex:['http://localhost:3002', 'https://test-camino.onrender.com']
     credentials: true //cookie為true時抓取資料
 };
 
@@ -171,7 +171,7 @@ app.get('/', (req, res) => {
   `);
 });
 
-//  取得資料 API（也要判斷登入）
+//  取得資料 API（也要判斷登入）(目前改成只有user資料才需要登入)
 app.get('/data', async (req, res) => {
     const { table } = req.query;
 
@@ -194,7 +194,7 @@ app.get('/data', async (req, res) => {
         //  只有查 users 時檢查 cookie
         if (table === 'users') {
             if (req.cookies.auth !== 'true') {
-                return res.status(401).json({ error: "需要登入才能查詢 users 資料表" });
+                return res.status(401).send("需要登入才能查詢user資料")
             }
         }
         //查詢資料
